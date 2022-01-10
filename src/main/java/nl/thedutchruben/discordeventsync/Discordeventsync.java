@@ -1,6 +1,7 @@
 package nl.thedutchruben.discordeventsync;
 
 import nl.thedutchruben.discordeventsync.framework.Event;
+import nl.thedutchruben.mccore.Mccore;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public final class Discordeventsync extends JavaPlugin {
     @Override
     public void onEnable() {
         intance = this;
-
+        new Mccore(this);
     }
 
     @Override
