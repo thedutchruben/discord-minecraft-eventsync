@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender;
 @Command(command = "discordevent",console = true,description = "Manage and see your discord event's",permission = "discordeventsync.command.discordevent")
 public class DiscordEventCommand {
 
-    @SubCommand(subCommand = "", description = "")
+    @SubCommand(subCommand = " ", description = "")
     public void info(CommandSender sender, String[] params){
         sender.sendMessage("----Discord Events----");
         sender.sendMessage("/discordevent create");
