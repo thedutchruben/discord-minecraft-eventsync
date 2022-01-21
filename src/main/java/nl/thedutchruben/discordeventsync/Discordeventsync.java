@@ -1,9 +1,11 @@
 package nl.thedutchruben.discordeventsync;
 
 import nl.thedutchruben.discordeventsync.framework.Event;
+import nl.thedutchruben.mccore.Mccore;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This plugin wil sync the event's from discord to minecraft
@@ -17,7 +19,7 @@ public final class Discordeventsync extends JavaPlugin {
     @Override
     public void onEnable() {
         intance = this;
-
+        new Mccore(this);
     }
 
     @Override
@@ -25,7 +27,18 @@ public final class Discordeventsync extends JavaPlugin {
         // Plugin shutdown logic
     }
 
+    public CompletableFuture<Void> importEvents(){
+
+        return CompletableFuture.supplyAsync(() -> {
+            return null;
+        });
+    }
+
     public static Discordeventsync getIntance() {
         return intance;
+    }
+
+    public List<Event> getDiscordEvents() {
+        return discordEvents;
     }
 }

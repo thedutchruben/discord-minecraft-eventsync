@@ -5,3 +5,5 @@ api-version: 1.18
 authors: [ TheDuchRuben, Wouter_MC ]
 description: Sync the events of discord to minecraft
 website: www.thedutchruben.nl
+commands:
+  discordevent:
