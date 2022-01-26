@@ -6,27 +6,50 @@ import nl.thedutchruben.discordeventsync.utils.Colors;
 import nl.thedutchruben.mccore.commands.Command;
 import nl.thedutchruben.mccore.commands.Default;
 import nl.thedutchruben.mccore.commands.SubCommand;
-import org.bukkit.ChatColor;
+import nl.thedutchruben.mccore.utils.message.MessageUtil;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 @Command(command = "discordevent",console = true,description = "Manage and see your discord event's",permission = "discordeventsync.command.discordevent")
 public class DiscordEventCommand {
 
     @Default
-    @SubCommand(subCommand = "info")
-    public void info(CommandSender sender, String[] params){
+    @SubCommand(subCommand = "help")
+    public void help(CommandSender sender, String[] params){
         sender.sendMessage(Colors.TEXT.getColor() +"----"+Colors.HIGH_LIGHT.getColor()+"Discord Events"+Colors.TEXT.getColor()+"----");
-        sender.sendMessage("/discordevent create");
-        sender.sendMessage("/discordevent list");
-        sender.sendMessage("/discordevent reload");
+        MessageUtil.sendClickableCommandHover((Player) sender,Colors.TEXT.getColor()+"/discordevent list"
+                ,"discordevent list","Click to see the event's");
+        sender.sendMessage(Colors.TEXT.getColor()+"/discordevent info <discordevent>");
+        sender.sendMessage(Colors.TEXT.getColor()+"/discordevent create <name> <date> <time> <place>");
+        sender.sendMessage(Colors.TEXT.getColor()+"/discordevent reload");
     }
 
-    @SubCommand(subCommand = "create", description = "",params = 3, usage = "<name> <date> <time> <place>")
+    @SubCommand(subCommand = "info",params = 1,usage = "<discordevent>")
+    public void info(CommandSender sender, String[] params){
+        Discordeventsync.getIntance().getDiscordEvents().stream().filter(event -> event.getName().equalsIgnoreCase(params[1].replace("_"," "))).findFirst().ifPresentOrElse(event -> {
+            event.interestedCount().whenCompleteAsync((integer, throwable) -> {
+                sender.sendMessage(Colors.HIGH_LIGHT.getColor()+event.getName());
+                sender.sendMessage(Colors.TEXT.getColor() +" Location: " +Colors.HIGH_LIGHT.getColor() + event.getLocation());
+                sender.sendMessage(Colors.TEXT.getColor() +" StartTime: " +Colors.HIGH_LIGHT.getColor() + event.formattedDate());
+                if(event.getDescription() != null){
+                    sender.sendMessage(Colors.TEXT.getColor() +" Description: " +Colors.HIGH_LIGHT.getColor() + event.getDescription());
+                }
+                sender.sendMessage(Colors.TEXT.getColor() +" People with interest: " +Colors.HIGH_LIGHT.getColor() + integer);
+
+            });
+
+        },() -> {
+            sender.sendMessage(Colors.WARNING.getColor() + "Event not found");
+        });
+    }
+
+
+    @SubCommand(subCommand = "create", description = "",params = 4, usage = "<name> <date> <time> <place>")
     public void create(CommandSender sender, String[] params){
-        String name = params[0];
-        String date = params[1];
-        String time = params[2];
-        String place = params[3];
+        String name = params[1];
+        String date = params[2];
+        String time = params[3];
+        String place = params[4];
         Event.createEvent(name,date,time,place).whenComplete((unused, throwable) -> {
             if(throwable != null){
                 sender.sendMessage(Colors.WARNING.getColor()+ "Someting whent wrong");
@@ -39,9 +62,13 @@ public class DiscordEventCommand {
 
     @SubCommand(subCommand = "list", description = "")
     public void list(CommandSender sender, String[] params){
-        sender.sendMessage("----Discord Events----");
+        sender.sendMessage(Colors.TEXT.getColor() +"----"+Colors.HIGH_LIGHT.getColor()+"Discord Events"+Colors.TEXT.getColor()+"----");
         for (Event discordEvent : Discordeventsync.getIntance().getDiscordEvents()) {
-            sender.sendMessage(discordEvent.getName() + " " + discordEvent.getLocation() + " " + discordEvent.getLocation());
+            MessageUtil.sendClickableCommandHover((Player) sender,Colors.HIGH_LIGHT.getColor()+discordEvent.getName()
+                    ,"discordevent info " + discordEvent.getName().replace(" ", "_"),"Click for more information");
+            sender.sendMessage(Colors.TEXT.getColor() +" Location: " +Colors.HIGH_LIGHT.getColor() + discordEvent.getLocation());
+            sender.sendMessage(Colors.TEXT.getColor() +" StartTime: " +Colors.HIGH_LIGHT.getColor() + discordEvent.formattedDate());
+            sender.sendMessage(" ");
         }
     }
 
