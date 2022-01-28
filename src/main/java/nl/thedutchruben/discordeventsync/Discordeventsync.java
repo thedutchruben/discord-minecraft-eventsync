@@ -49,6 +49,13 @@ public final class Discordeventsync extends JavaPlugin {
         configfileConfiguration.addDefault("discord.botCode", "");
         config.copyDefaults(true).save();
 
+        config = fileManager.getConfig("config.yml");
+        configfileConfiguration = config.get();
+        configfileConfiguration.addDefault("setting.updatecheck",true);
+        configfileConfiguration.addDefault("setting.dateformat","HH:mm dd-MM-yyyy");
+        config.copyDefaults(true).save();
+
+
         this.guildId = configfileConfiguration.getString("discord.guildId");
         this.botCode = configfileConfiguration.getString("discord.botCode");
 

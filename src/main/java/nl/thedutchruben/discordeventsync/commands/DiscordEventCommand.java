@@ -38,9 +38,7 @@ public class DiscordEventCommand {
 
             });
 
-        },() -> {
-            sender.sendMessage(Colors.WARNING.getColor() + "Event not found");
-        });
+        },() -> sender.sendMessage(Colors.WARNING.getColor() + "Event not found"));
     }
 
 

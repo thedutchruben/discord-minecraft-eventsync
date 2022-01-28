@@ -11,10 +11,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.concurrent.CompletableFuture;
 
 public class Event {
-
+    private static  final DateFormat playerDateFormat = new SimpleDateFormat(Discordeventsync.getIntance().
+            getFileManager().getConfig("config.yml").get().getString("setting.dateformat"));
     private String id;
     private String name;
     private String description;
@@ -84,7 +87,7 @@ public class Event {
                     this.count = jsonArray.size();
                 }else if (con.getResponseCode() == 500) {
                     br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
-                    new DiscordApiErrorException("The discord api gave a 500 error check : https://discordstatus.com/ for issues");
+                    throw new DiscordApiErrorException("The discord api gave a 500 error check : https://discordstatus.com/ for issues");
                 } else {
                     br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
                 }
