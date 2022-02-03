@@ -52,12 +52,12 @@ public final class Discordeventsync extends JavaPlugin {
         config = fileManager.getConfig("config.yml");
         configfileConfiguration = config.get();
         configfileConfiguration.addDefault("setting.updatecheck",true);
-        configfileConfiguration.addDefault("setting.dateformat","HH:mm dd-MM-yyyy");
+        configfileConfiguration.addDefault("setting.dateformat","dd-MM-yyyy");
         config.copyDefaults(true).save();
 
 
-        this.guildId = configfileConfiguration.getString("discord.guildId");
-        this.botCode = configfileConfiguration.getString("discord.botCode");
+        this.guildId = fileManager.getConfig("discord.yml").get().getString("discord.guildId");
+        this.botCode = fileManager.getConfig("discord.yml").get().getString("discord.botCode");
 
         importEvents().whenComplete((unused, throwable) -> {
             if(throwable != null){

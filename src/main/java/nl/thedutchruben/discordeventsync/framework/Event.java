@@ -4,15 +4,20 @@ import com.google.gson.*;
 import lombok.SneakyThrows;
 import nl.thedutchruben.discordeventsync.Discordeventsync;
 import nl.thedutchruben.discordeventsync.exeptions.DiscordApiErrorException;
+import nl.thedutchruben.discordeventsync.utils.Colors;
+import org.bukkit.command.CommandSender;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 
 public class Event {
@@ -104,8 +109,51 @@ public class Event {
 
     }
 
-    public static CompletableFuture<Void> createEvent(String name, String date, String time, String place){
+    public static CompletableFuture<Void> createEvent(CommandSender commandSender,String name, String date, String time, String place){
+//        TimeZone.getDefault().
         return CompletableFuture.supplyAsync(() -> {
+            URL url = null;
+            try {
+                url = new URL("https://discordapp.com/api/guilds/588284432687955978/scheduled-events");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty ("Authorization", "Bot OTIyOTQyNTI4NTg2NjUzNzQ2.YcIzNg.s6SmvmtQqWoh-ybAkQAX8rHr3Nk");
+                con.setRequestMethod("POST");
+                con.setRequestProperty("Content-Type", "application/json; utf-8");
+                con.setRequestProperty("Accept", "application/json");
+                con.setDoOutput(true);
+                String jsonInputString = "{\n" +
+                        "   \"entity_metadata\":{\n" +
+                        "      \"location\":\""+place+"\"\n" +
+                        "   },\n" +
+                        "   \"name\":\""+name+"\",\n" +
+                        "   \"scheduled_start_time\":\"2023-07-16T19:20:30.45+01:00\",\n" +
+                        "    \"scheduled_end_time\":\"2023-07-16T19:21:30.45+01:00\",\n" +
+                        "   \"entity_type\":\"3\",\n" +
+                        "   \"privacy_level\":\"2\"\n" +
+                        "}";
+                try(OutputStream os = con.getOutputStream()) {
+                    byte[] input = jsonInputString.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
+
+                try(BufferedReader br = new BufferedReader(
+                        new InputStreamReader(con.getInputStream(), "utf-8"))) {
+                    StringBuilder response = new StringBuilder();
+                    String responseLine = null;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                if(e.getMessage().split("code: ")[1].split(" ")[0] != null){
+                    if(e.getMessage().split("code: ")[1].split(" ")[0] == "403"){
+                        commandSender.sendMessage(Colors.WARNING.getColor() + "The bot doesn't have permission to create event's");
+                        commandSender.sendMessage(Colors.WARNING.getColor() + "Give the bot permission in your discord server!");}
+                    }
+
+            }
 
             return null;
         });

@@ -48,7 +48,7 @@ public class DiscordEventCommand {
         String date = params[2];
         String time = params[3];
         String place = params[4];
-        Event.createEvent(name,date,time,place).whenComplete((unused, throwable) -> {
+        Event.createEvent(sender,name,date,time,place).whenComplete((unused, throwable) -> {
             if(throwable != null){
                 sender.sendMessage(Colors.WARNING.getColor()+ "Someting whent wrong");
                 throwable.printStackTrace();
