@@ -116,7 +116,7 @@ public class Event {
             try {
                 url = new URL("https://discordapp.com/api/guilds/588284432687955978/scheduled-events");
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestProperty ("Authorization", "Bot OTIyOTQyNTI4NTg2NjUzNzQ2.YcIzNg.s6SmvmtQqWoh-ybAkQAX8rHr3Nk");
+                con.setRequestProperty ("Authorization", "Bot ");
                 con.setRequestMethod("POST");
                 con.setRequestProperty("Content-Type", "application/json; utf-8");
                 con.setRequestProperty("Accept", "application/json");
