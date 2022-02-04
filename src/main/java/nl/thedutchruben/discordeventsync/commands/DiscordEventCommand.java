@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 public class DiscordEventCommand {
 
     @Default
-    @SubCommand(subCommand = "help")
+    @SubCommand(subCommand = "help",permission = "discordeventsync.command.discordevent.help")
     public void help(CommandSender sender, String[] params){
         sender.sendMessage(Colors.TEXT.getColor() +"----"+Colors.HIGH_LIGHT.getColor()+"Discord Events"+Colors.TEXT.getColor()+"----");
         MessageUtil.sendClickableCommandHover((Player) sender,Colors.TEXT.getColor()+"/discordevent list"
@@ -24,7 +24,7 @@ public class DiscordEventCommand {
         sender.sendMessage(Colors.TEXT.getColor()+"/discordevent reload");
     }
 
-    @SubCommand(subCommand = "info",params = 1,usage = "<discordevent>")
+    @SubCommand(subCommand = "info",params = 1,usage = "<discordevent>",permission = "discordeventsync.command.discordevent.info")
     public void info(CommandSender sender, String[] params){
         Discordeventsync.getIntance().getDiscordEvents().stream().filter(event -> event.getName().equalsIgnoreCase(params[1].replace("_"," "))).findFirst().ifPresentOrElse(event -> {
             event.interestedCount().whenCompleteAsync((integer, throwable) -> {
@@ -42,7 +42,7 @@ public class DiscordEventCommand {
     }
 
 
-    @SubCommand(subCommand = "create", description = "",params = 4, usage = "<name> <date> <time> <place>")
+    @SubCommand(subCommand = "create", description = "",params = 4, usage = "<name> <date> <time> <place>",permission = "discordeventsync.command.create")
     public void create(CommandSender sender, String[] params){
         String name = params[1];
         String date = params[2];
@@ -58,7 +58,7 @@ public class DiscordEventCommand {
         });
     }
 
-    @SubCommand(subCommand = "list", description = "")
+    @SubCommand(subCommand = "list", description = "",permission = "discordeventsync.command.discordevent.list")
     public void list(CommandSender sender, String[] params){
         sender.sendMessage(Colors.TEXT.getColor() +"----"+Colors.HIGH_LIGHT.getColor()+"Discord Events"+Colors.TEXT.getColor()+"----");
         for (Event discordEvent : Discordeventsync.getIntance().getDiscordEvents()) {
@@ -70,7 +70,7 @@ public class DiscordEventCommand {
         }
     }
 
-    @SubCommand(subCommand = "reload", description = "")
+    @SubCommand(subCommand = "reload", description = "",permission = "discordeventsync.command.discordevent.reload")
     public void reload(CommandSender sender, String[] params){
         Discordeventsync.getIntance().importEvents().whenComplete((unused, throwable) -> {
            if(throwable != null){
