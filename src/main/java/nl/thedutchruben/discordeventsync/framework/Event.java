@@ -21,7 +21,10 @@ import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 
 public class Event {
-    private static  final DateFormat playerDateFormat = new SimpleDateFormat(Discordeventsync.getIntance().
+    /**
+     * Format that the user wand
+     */
+    private static final DateFormat playerDateFormat = new SimpleDateFormat(Discordeventsync.getIntance().
             getFileManager().getConfig("config.yml").get().getString("setting.dateformat"));
     private String id;
     private String name;
