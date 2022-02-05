@@ -58,7 +58,7 @@ public class DiscordEventCommand {
         });
     }
 
-    @SubCommand(subCommand = "list", description = "",permission = "discordeventsync.command.discordevent.list")
+    @SubCommand(subCommand = "list", permission = "discordeventsync.command.discordevent.list")
     public void list(CommandSender sender, String[] params){
         sender.sendMessage(Colors.TEXT.getColor() +"----"+Colors.HIGH_LIGHT.getColor()+"Discord Events"+Colors.TEXT.getColor()+"----");
         for (Event discordEvent : Discordeventsync.getIntance().getDiscordEvents()) {
@@ -70,7 +70,7 @@ public class DiscordEventCommand {
         }
     }
 
-    @SubCommand(subCommand = "reload", description = "",permission = "discordeventsync.command.discordevent.reload")
+    @SubCommand(subCommand = "reload", permission = "discordeventsync.command.discordevent.reload")
     public void reload(CommandSender sender, String[] params){
         Discordeventsync.getIntance().importEvents().whenComplete((unused, throwable) -> {
            if(throwable != null){
