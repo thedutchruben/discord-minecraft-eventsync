@@ -8,7 +8,7 @@ public enum Colors {
     WARNING(ChatColor.DARK_RED),
     SUCCESS(ChatColor.GREEN);
 
-    private ChatColor color;
+    private final ChatColor color;
 
     Colors(ChatColor chatColor) {
         this.color = chatColor;

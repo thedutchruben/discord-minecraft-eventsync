@@ -16,7 +16,16 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 
@@ -24,7 +33,7 @@ public class Event {
     /**
      * Format that the user wand
      */
-    private static final DateFormat playerDateFormat = new SimpleDateFormat(Discordeventsync.getIntance().
+    private static DateFormat playerDateFormat = new SimpleDateFormat(Discordeventsync.getIntance().
             getFileManager().getConfig("config.yml").get().getString("setting.dateformat"));
     private String id;
     private String name;
@@ -112,14 +121,49 @@ public class Event {
 
     }
 
-    public static CompletableFuture<Void> createEvent(CommandSender commandSender,String name, String date, String time, String place){
-//        TimeZone.getDefault().
+    public static CompletableFuture<Boolean> createEvent(CommandSender commandSender,String name, String date, String startTime,String endTime, String place){
+        SimpleDateFormat discordFormat = new SimpleDateFormat("yyy-MM-dd");
+        Date userDate;
+        playerDateFormat.setLenient(false);
+        try {
+            userDate = playerDateFormat.parse(date);
+            Date now = new Date(System.currentTimeMillis());
+
+            if(!now.before(userDate)){
+                commandSender.sendMessage(Colors.WARNING.getColor() + "The date has to be in the future");
+                return CompletableFuture.completedFuture(false);
+            }
+
+            Calendar calendar  = Calendar.getInstance();
+            calendar.add(Calendar.YEAR, 5);
+            if(userDate.after(calendar.getTime())){
+                commandSender.sendMessage(Colors.WARNING.getColor() + "The date has to be within 5 years");
+                return CompletableFuture.completedFuture(false);
+            }
+
+        } catch (ParseException e) {
+            commandSender.sendMessage(Colors.WARNING.getColor() + "The date format is not correct. The correct format is "+ Colors.HIGH_LIGHT.getColor() + Discordeventsync.getIntance().
+                    getFileManager().getConfig("config.yml").get().getString("setting.dateformat"));
+            return CompletableFuture.completedFuture(false);
+        }
+
+        try {
+            DateTimeFormatter strictTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+                    .withResolverStyle(ResolverStyle.STRICT);
+            LocalTime.parse(startTime, strictTimeFormatter);
+            LocalTime.parse(endTime, strictTimeFormatter);
+        }catch (DateTimeParseException exception){
+            commandSender.sendMessage(Colors.WARNING.getColor() + "The time format is not correct. The correct format is "+ Colors.HIGH_LIGHT.getColor() + "HH:mm:ss");
+            return CompletableFuture.completedFuture(false);
+        }
+
+
         return CompletableFuture.supplyAsync(() -> {
             URL url = null;
             try {
                 url = new URL("https://discordapp.com/api/guilds/588284432687955978/scheduled-events");
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestProperty ("Authorization", "Bot ");
+                con.setRequestProperty ("Authorization", "Bot " + Discordeventsync.getIntance().getBotCode());
                 con.setRequestMethod("POST");
                 con.setRequestProperty("Content-Type", "application/json; utf-8");
                 con.setRequestProperty("Accept", "application/json");
@@ -129,11 +173,12 @@ public class Event {
                         "      \"location\":\""+place+"\"\n" +
                         "   },\n" +
                         "   \"name\":\""+name+"\",\n" +
-                        "   \"scheduled_start_time\":\"2023-07-16T19:20:30.45+01:00\",\n" +
-                        "    \"scheduled_end_time\":\"2023-07-16T19:21:30.45+01:00\",\n" +
+                        "   \"scheduled_start_time\":\""+discordFormat.format(userDate)+"T"+startTime+getCurrentTimezoneOffset()+"\",\n" +
+                        "    \"scheduled_end_time\":\""+discordFormat.format(userDate)+"T"+endTime+getCurrentTimezoneOffset()+"\",\n" +
                         "   \"entity_type\":\"3\",\n" +
                         "   \"privacy_level\":\"2\"\n" +
                         "}";
+                System.out.println(jsonInputString);
                 try(OutputStream os = con.getOutputStream()) {
                     byte[] input = jsonInputString.getBytes("utf-8");
                     os.write(input, 0, input.length);
@@ -146,6 +191,24 @@ public class Event {
                     while ((responseLine = br.readLine()) != null) {
                         response.append(responseLine.trim());
                     }
+                }catch (IOException e){
+
+                    switch (con.getResponseCode()){
+                        case 401:
+                            commandSender.sendMessage(Colors.WARNING.getColor() + "The botcode is incorrect in the discord.yml");
+                            break;
+                        case 403:
+                            commandSender.sendMessage(Colors.WARNING.getColor() + "The bot doesn't have permission to create event's");
+                            commandSender.sendMessage(Colors.WARNING.getColor() + "Give the bot permission in your discord server!");
+                            break;
+                        case 500:
+                            commandSender.sendMessage(Colors.WARNING.getColor() + "There are some issues at the discord services");
+                            break;
+                        default:
+                            commandSender.sendMessage(Colors.WARNING.getColor() + e.getMessage());
+                            break;
+                    }
+                    return false;
                 }
 
             } catch (IOException e) {
@@ -155,10 +218,22 @@ public class Event {
                         commandSender.sendMessage(Colors.WARNING.getColor() + "The bot doesn't have permission to create event's");
                         commandSender.sendMessage(Colors.WARNING.getColor() + "Give the bot permission in your discord server!");}
                     }
-
+                return false;
             }
 
-            return null;
+            return true;
         });
+    }
+
+    public static String getCurrentTimezoneOffset() {
+
+        TimeZone tz = TimeZone.getDefault();
+        Calendar cal = GregorianCalendar.getInstance(tz);
+        int offsetInMillis = tz.getOffset(cal.getTimeInMillis());
+
+        String offset = String.format("%02d:%02d", Math.abs(offsetInMillis / 3600000), Math.abs((offsetInMillis / 60000) % 60));
+        offset = (offsetInMillis >= 0 ? "+" : "-") + offset;
+
+        return offset;
     }
 }

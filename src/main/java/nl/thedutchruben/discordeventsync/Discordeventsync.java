@@ -5,11 +5,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import nl.thedutchruben.discordeventsync.exeptions.DiscordApiErrorException;
+import nl.thedutchruben.discordeventsync.expentions.PlaceholderAPIExpansion;
 import nl.thedutchruben.discordeventsync.framework.Event;
+import nl.thedutchruben.discordeventsync.utils.Colors;
 import nl.thedutchruben.mccore.Mccore;
 import nl.thedutchruben.mccore.commands.CommandRegistry;
 import nl.thedutchruben.mccore.commands.TabComplete;
 import nl.thedutchruben.mccore.utils.config.FileManager;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -20,10 +24,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -41,6 +42,7 @@ public final class Discordeventsync extends JavaPlugin {
     private List<Event> discordEvents = new ArrayList<>();
     @Override
     public void onEnable() {
+        Metrics metrics = new Metrics(this, 14214);
         intance = this;
         new Mccore(this);
         FileManager.Config config = fileManager.getConfig("discord.yml");
@@ -61,11 +63,11 @@ public final class Discordeventsync extends JavaPlugin {
 
         importEvents().whenComplete((unused, throwable) -> {
             if(throwable != null){
-                Bukkit.getLogger().log(Level.WARNING,"Event's not loaded");
+                Bukkit.getLogger().log(Level.WARNING,Colors.WARNING.getColor() +"Event's not loaded");
                 throwable.printStackTrace();
                 return;
             }
-            Bukkit.getLogger().log(Level.INFO,"Event's loaded");
+            Bukkit.getLogger().log(Level.INFO, Colors.SUCCESS.getColor() + "Event's loaded");
 
         });
 
@@ -76,6 +78,14 @@ public final class Discordeventsync extends JavaPlugin {
             }
             return events;
         });
+
+        metrics.addCustomChart(new SimplePie("has_events",() -> String.valueOf(!discordEvents.isEmpty())));
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            getLogger().log(Level.INFO, Colors.HIGH_LIGHT.getColor() +"PlaceholderAPI expansion implemented");
+            metrics.addCustomChart(new SimplePie("addons_use", () -> "PlaceholderAPI"));
+            new PlaceholderAPIExpansion().register();
+        }
     }
 
     @Override
@@ -121,13 +131,13 @@ public final class Discordeventsync extends JavaPlugin {
                     }
                 }else if (con.getResponseCode() == 500) {
                     br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
-                    new DiscordApiErrorException("The discord api gave a 500 error check : https://discordstatus.com/ for issues");
+                    throw new DiscordApiErrorException("The discord api gave a 500 error check : https://discordstatus.com/ for issues");
                 } else {
                     br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
                 }
 
                 br.close();
-            } catch (IOException | ClassCastException e) {
+            } catch (IOException | ClassCastException | DiscordApiErrorException e) {
                 e.printStackTrace();
             }
 
@@ -146,6 +156,14 @@ public final class Discordeventsync extends JavaPlugin {
 
     public List<Event> getDiscordEvents() {
         return discordEvents;
+    }
+
+    public Optional<Event> getNextEvent(){
+        if (getDiscordEvents().isEmpty()){
+            return Optional.empty();
+        }
+
+        return Optional.of(getDiscordEvents().get(0));
     }
 
     public String getBotCode() {

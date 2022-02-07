@@ -17,7 +17,7 @@ public class DiscordEventCommand {
     @SubCommand(subCommand = "help",permission = "discordeventsync.command.discordevent.help")
     public void help(CommandSender sender, String[] params){
         sender.sendMessage(Colors.TEXT.getColor() +"----"+Colors.HIGH_LIGHT.getColor()+"Discord Events"+Colors.TEXT.getColor()+"----");
-        MessageUtil.sendClickableCommandHover((Player) sender,Colors.TEXT.getColor()+"/discordevent list"
+        MessageUtil.sendClickableCommandHover(sender,Colors.TEXT.getColor()+"/discordevent list"
                 ,"discordevent list","Click to see the event's");
         sender.sendMessage(Colors.TEXT.getColor()+"/discordevent info <discordevent>");
         sender.sendMessage(Colors.TEXT.getColor()+"/discordevent create <name> <date> <time> <place>");
@@ -42,18 +42,23 @@ public class DiscordEventCommand {
     }
 
 
-    @SubCommand(subCommand = "create", description = "",params = 4, usage = "<name> <date> <time> <place>",permission = "discordeventsync.command.create")
+    @SubCommand(subCommand = "create", description = "",params = 5, usage = "<name> <date> <starttime> <endtime> <place>",permission = "discordeventsync.command.create")
     public void create(CommandSender sender, String[] params){
         String name = params[1];
         String date = params[2];
-        String time = params[3];
-        String place = params[4];
-        Event.createEvent(sender,name,date,time,place).whenComplete((unused, throwable) -> {
+        String startTime = params[3];
+        String endTime = params[4];
+        String place = params[5];
+        Event.createEvent(sender,name,date,startTime,endTime,place).whenComplete((unused, throwable) -> {
             if(throwable != null){
                 sender.sendMessage(Colors.WARNING.getColor()+ "Someting whent wrong");
                 throwable.printStackTrace();
             }else{
-                sender.sendMessage(Colors.SUCCESS.getColor() + "Event created");
+                if(unused){
+                    sender.sendMessage(Colors.SUCCESS.getColor() + "Event created");
+                }else{
+                    sender.sendMessage(Colors.WARNING.getColor()+ "Someting whent wrong");
+                }
             }
         });
     }
@@ -62,7 +67,7 @@ public class DiscordEventCommand {
     public void list(CommandSender sender, String[] params){
         sender.sendMessage(Colors.TEXT.getColor() +"----"+Colors.HIGH_LIGHT.getColor()+"Discord Events"+Colors.TEXT.getColor()+"----");
         for (Event discordEvent : Discordeventsync.getIntance().getDiscordEvents()) {
-            MessageUtil.sendClickableCommandHover((Player) sender,Colors.HIGH_LIGHT.getColor()+discordEvent.getName()
+            MessageUtil.sendClickableCommandHover(sender,Colors.HIGH_LIGHT.getColor()+discordEvent.getName()
                     ,"discordevent info " + discordEvent.getName().replace(" ", "_"),"Click for more information");
             sender.sendMessage(Colors.TEXT.getColor() +" Location: " +Colors.HIGH_LIGHT.getColor() + discordEvent.getLocation());
             sender.sendMessage(Colors.TEXT.getColor() +" StartTime: " +Colors.HIGH_LIGHT.getColor() + discordEvent.formattedDate());
