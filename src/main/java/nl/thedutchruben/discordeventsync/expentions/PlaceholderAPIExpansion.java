@@ -4,11 +4,16 @@ import lombok.SneakyThrows;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import nl.thedutchruben.discordeventsync.Discordeventsync;
 import nl.thedutchruben.discordeventsync.framework.Event;
+import nl.thedutchruben.mccore.runnables.ASyncRepeatingTask;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PlaceholderAPIExpansion extends PlaceholderExpansion {
+@ASyncRepeatingTask(startTime = 0,repeatTime = 20*60)
+public class PlaceholderAPIExpansion extends PlaceholderExpansion implements Runnable{
+    private int current;
+    private Event currentEvent;
+
     @Override
     public @NotNull String getIdentifier() {
         return "discordeventsync";
@@ -70,7 +75,54 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
         }
 
 
+        //%discordeventsync_random_event_name%
+        if(params.equals("random_event_name")){
+            if(currentEvent == null){
+                return "No event found";
+            }else{
+                return currentEvent.getName();
+            }
+        }
+
+        //%discordeventsync_random_event_description%
+        if(params.equals("random_event_description")){
+            if(currentEvent == null){
+                return "No event found";
+            }else{
+                return currentEvent.getDescription();
+            }
+        }
+
+        //%discordeventsync_random_event_date%
+        if(params.equals("random_event_date")){
+            if(currentEvent == null){
+                return "No event found";
+            }else{
+                return currentEvent.formattedDate();
+            }
+        }
+
+        //%discordeventsync_random_event_count%
+        if(params.equals("random_event_count")){
+            if(currentEvent == null){
+                return "No event found";
+            }else{
+                return String.valueOf(currentEvent.interestedCount().get());
+            }
+        }
+
 
         return null;
+    }
+
+    @Override
+    public void run() {
+        if(current++ <= Discordeventsync.getIntance().getDiscordEvents().size()){
+            current++;
+        }else {
+            current = 0;
+        }
+
+        currentEvent = Discordeventsync.getIntance().getDiscordEvents().get(0);
     }
 }
