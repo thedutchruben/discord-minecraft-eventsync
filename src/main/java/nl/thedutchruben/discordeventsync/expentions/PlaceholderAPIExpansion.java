@@ -4,15 +4,14 @@ import lombok.SneakyThrows;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import nl.thedutchruben.discordeventsync.Discordeventsync;
 import nl.thedutchruben.discordeventsync.framework.Event;
+import nl.thedutchruben.discordeventsync.runnables.RoundEventsRunnable;
 import nl.thedutchruben.mccore.runnables.ASyncRepeatingTask;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@ASyncRepeatingTask(startTime = 0,repeatTime = 20*60)
-public class PlaceholderAPIExpansion extends PlaceholderExpansion implements Runnable{
-    private int current;
-    private Event currentEvent;
+
+public class PlaceholderAPIExpansion extends PlaceholderExpansion{
 
     @Override
     public @NotNull String getIdentifier() {
@@ -77,37 +76,37 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion implements Run
 
         //%discordeventsync_random_event_name%
         if(params.equals("random_event_name")){
-            if(currentEvent == null){
+            if(RoundEventsRunnable.getCurrentEvent() == null){
                 return "No event found";
             }else{
-                return currentEvent.getName();
+                return RoundEventsRunnable.getCurrentEvent().getName();
             }
         }
 
         //%discordeventsync_random_event_description%
         if(params.equals("random_event_description")){
-            if(currentEvent == null){
+            if(RoundEventsRunnable.getCurrentEvent() == null){
                 return "No event found";
             }else{
-                return currentEvent.getDescription();
+                return RoundEventsRunnable.getCurrentEvent().getDescription();
             }
         }
 
         //%discordeventsync_random_event_date%
         if(params.equals("random_event_date")){
-            if(currentEvent == null){
+            if(RoundEventsRunnable.getCurrentEvent() == null){
                 return "No event found";
             }else{
-                return currentEvent.formattedDate();
+                return RoundEventsRunnable.getCurrentEvent().formattedDate();
             }
         }
 
         //%discordeventsync_random_event_count%
         if(params.equals("random_event_count")){
-            if(currentEvent == null){
+            if(RoundEventsRunnable.getCurrentEvent() == null){
                 return "No event found";
             }else{
-                return String.valueOf(currentEvent.interestedCount().get());
+                return String.valueOf(RoundEventsRunnable.getCurrentEvent().interestedCount().get());
             }
         }
 
@@ -115,14 +114,4 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion implements Run
         return null;
     }
 
-    @Override
-    public void run() {
-        if(current++ <= Discordeventsync.getIntance().getDiscordEvents().size()){
-            current++;
-        }else {
-            current = 0;
-        }
-
-        currentEvent = Discordeventsync.getIntance().getDiscordEvents().get(0);
-    }
 }
