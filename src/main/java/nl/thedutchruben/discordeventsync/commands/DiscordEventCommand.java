@@ -77,6 +77,7 @@ public class DiscordEventCommand {
 
     @SubCommand(subCommand = "reload", permission = "discordeventsync.command.discordevent.reload")
     public void reload(CommandSender sender, String[] params){
+        Discordeventsync.getIntance().reloadConfig();
         Discordeventsync.getIntance().importEvents().whenComplete((unused, throwable) -> {
            if(throwable != null){
                sender.sendMessage(Colors.WARNING.getColor()+ "Someting whent wrong");

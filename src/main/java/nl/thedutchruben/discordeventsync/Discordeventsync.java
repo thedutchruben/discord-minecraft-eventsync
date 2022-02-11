@@ -33,7 +33,7 @@ import java.util.logging.Level;
  */
 public final class Discordeventsync extends JavaPlugin {
     private static Discordeventsync intance;
-    private FileManager fileManager = new FileManager(this);
+    private final FileManager fileManager = new FileManager(this);
     private String guildId = "";
     private String botCode = "";
     /**
@@ -45,22 +45,7 @@ public final class Discordeventsync extends JavaPlugin {
         Metrics metrics = new Metrics(this, 14214);
         intance = this;
         new Mccore(this);
-        FileManager.Config config = fileManager.getConfig("discord.yml");
-        FileConfiguration configfileConfiguration = config.get();
-        configfileConfiguration.addDefault("discord.guildId", "");
-        configfileConfiguration.addDefault("discord.botCode", "");
-        config.copyDefaults(true).save();
-
-        config = fileManager.getConfig("config.yml");
-        configfileConfiguration = config.get();
-        configfileConfiguration.addDefault("setting.updatecheck",true);
-        configfileConfiguration.addDefault("setting.dateformat","dd-MM-yyyy");
-        config.copyDefaults(true).save();
-
-
-        this.guildId = fileManager.getConfig("discord.yml").get().getString("discord.guildId");
-        this.botCode = fileManager.getConfig("discord.yml").get().getString("discord.botCode");
-
+        setupConfig();
         importEvents().whenComplete((unused, throwable) -> {
             if(throwable != null){
                 Bukkit.getLogger().log(Level.WARNING,Colors.WARNING.getColor() +"Event's not loaded");
@@ -86,6 +71,24 @@ public final class Discordeventsync extends JavaPlugin {
             metrics.addCustomChart(new SimplePie("addons_use", () -> "PlaceholderAPI"));
             new PlaceholderAPIExpansion().register();
         }
+    }
+
+    public void setupConfig(){
+        FileManager.Config discordConfig = fileManager.getConfig("discord.yml");
+        FileConfiguration discordConfigConfiguration = discordConfig.get();
+        discordConfigConfiguration.addDefault("discord.guildId", "");
+        discordConfigConfiguration.addDefault("discord.botCode", "");
+        discordConfig.copyDefaults(true).save();
+
+        FileManager.Config config  = fileManager.getConfig("config.yml");
+        FileConfiguration configfileConfiguration = config.get();
+        configfileConfiguration.addDefault("setting.updatecheck",true);
+        configfileConfiguration.addDefault("setting.dateformat","dd-MM-yyyy");
+        config.copyDefaults(true).save();
+
+
+        this.guildId = discordConfigConfiguration.getString("discord.guildId");
+        this.botCode = discordConfigConfiguration.getString("discord.botCode");
     }
 
     @Override
