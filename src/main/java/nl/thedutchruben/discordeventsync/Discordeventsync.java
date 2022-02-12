@@ -5,17 +5,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import nl.thedutchruben.discordeventsync.exeptions.DiscordApiErrorException;
-import nl.thedutchruben.discordeventsync.expentions.PlaceholderAPIExpansion;
+import nl.thedutchruben.discordeventsync.extentions.PlaceholderAPIExpansion;
 import nl.thedutchruben.discordeventsync.framework.Event;
 import nl.thedutchruben.discordeventsync.utils.Colors;
 import nl.thedutchruben.mccore.Mccore;
 import nl.thedutchruben.mccore.commands.CommandRegistry;
-import nl.thedutchruben.mccore.commands.TabComplete;
 import nl.thedutchruben.mccore.utils.config.FileManager;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 

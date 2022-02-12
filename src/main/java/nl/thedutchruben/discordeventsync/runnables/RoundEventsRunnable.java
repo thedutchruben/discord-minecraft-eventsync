@@ -4,10 +4,12 @@ import nl.thedutchruben.discordeventsync.Discordeventsync;
 import nl.thedutchruben.discordeventsync.framework.Event;
 import nl.thedutchruben.mccore.runnables.ASyncRepeatingTask;
 
-@ASyncRepeatingTask(startTime = 0,repeatTime = 20*60)
+import java.util.Optional;
+
+@ASyncRepeatingTask(startTime = 20*60,repeatTime = 20*60)
 public class RoundEventsRunnable implements Runnable{
-    private int current;
-    private static Event currentEvent;
+    private int current = 0;
+    private static Optional<Event> currentEvent = Optional.empty();
 
     @Override
     public void run() {
@@ -17,10 +19,10 @@ public class RoundEventsRunnable implements Runnable{
             current = 0;
         }
 
-        currentEvent = Discordeventsync.getIntance().getDiscordEvents().get(0);
+        currentEvent = Optional.ofNullable(Discordeventsync.getIntance().getDiscordEvents().get(current));
     }
 
-    public static Event getCurrentEvent() {
+    public static Optional<Event> getCurrentEvent() {
         return currentEvent;
     }
 }

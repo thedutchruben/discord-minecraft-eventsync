@@ -1,11 +1,10 @@
-package nl.thedutchruben.discordeventsync.expentions;
+package nl.thedutchruben.discordeventsync.extentions;
 
 import lombok.SneakyThrows;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import nl.thedutchruben.discordeventsync.Discordeventsync;
 import nl.thedutchruben.discordeventsync.framework.Event;
 import nl.thedutchruben.discordeventsync.runnables.RoundEventsRunnable;
-import nl.thedutchruben.mccore.runnables.ASyncRepeatingTask;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,7 +78,7 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion{
             if(RoundEventsRunnable.getCurrentEvent() == null){
                 return "No event found";
             }else{
-                return RoundEventsRunnable.getCurrentEvent().getName();
+                return RoundEventsRunnable.getCurrentEvent().get().getName();
             }
         }
 
@@ -88,7 +87,7 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion{
             if(RoundEventsRunnable.getCurrentEvent() == null){
                 return "No event found";
             }else{
-                return RoundEventsRunnable.getCurrentEvent().getDescription();
+                return RoundEventsRunnable.getCurrentEvent().get().getDescription();
             }
         }
 
@@ -97,16 +96,16 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion{
             if(RoundEventsRunnable.getCurrentEvent() == null){
                 return "No event found";
             }else{
-                return RoundEventsRunnable.getCurrentEvent().formattedDate();
+                return RoundEventsRunnable.getCurrentEvent().get().formattedDate();
             }
         }
 
         //%discordeventsync_random_event_count%
         if(params.equals("random_event_count")){
-            if(RoundEventsRunnable.getCurrentEvent() == null){
+            if(RoundEventsRunnable.getCurrentEvent().get() == null){
                 return "No event found";
             }else{
-                return String.valueOf(RoundEventsRunnable.getCurrentEvent().interestedCount().get());
+                return String.valueOf(RoundEventsRunnable.getCurrentEvent().get().interestedCount().get());
             }
         }
 
