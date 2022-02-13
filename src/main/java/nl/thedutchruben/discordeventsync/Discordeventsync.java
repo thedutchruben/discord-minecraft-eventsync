@@ -108,6 +108,7 @@ public final class Discordeventsync extends JavaPlugin {
                     br = new BufferedReader(new InputStreamReader(con.getInputStream()));
                     String line = br.readLine();
                     JsonArray jsonArray = (JsonArray) JsonParser.parseString(line);
+                    System.out.println(line);
                     for (JsonElement jsonElement : jsonArray) {
                         Event event = new Event();
                         JsonObject eventObject = jsonElement.getAsJsonObject();

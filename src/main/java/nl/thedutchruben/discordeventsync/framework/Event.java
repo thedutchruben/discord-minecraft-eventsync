@@ -78,7 +78,7 @@ public class Event {
     }
 
     public String formattedDate(){
-        return startDate;
+        return startDate.replace("T"," ").split("+")[0];
     }
 
     public String getLocation(){

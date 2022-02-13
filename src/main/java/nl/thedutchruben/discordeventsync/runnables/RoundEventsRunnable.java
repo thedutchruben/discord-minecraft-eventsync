@@ -13,13 +13,16 @@ public class RoundEventsRunnable implements Runnable{
 
     @Override
     public void run() {
-        if(current++ <= Discordeventsync.getIntance().getDiscordEvents().size()){
+        System.out.println(current+1 <= Discordeventsync.getIntance().getDiscordEvents().size());
+        if(current+1 <= Discordeventsync.getIntance().getDiscordEvents().size()){
             current++;
         }else {
             current = 0;
         }
 
-        currentEvent = Optional.ofNullable(Discordeventsync.getIntance().getDiscordEvents().get(current));
+        System.out.println(current);
+
+        currentEvent = Optional.of(Discordeventsync.getIntance().getDiscordEvents().get(current));
     }
 
     public static Optional<Event> getCurrentEvent() {
