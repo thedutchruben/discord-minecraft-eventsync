@@ -1,6 +1,6 @@
 package nl.thedutchruben.discordeventsync.commands;
 
-import nl.thedutchruben.discordeventsync.Discordeventsync;
+import nl.thedutchruben.discordeventsync.DiscordEventSync;
 import nl.thedutchruben.discordeventsync.framework.Event;
 import nl.thedutchruben.discordeventsync.utils.Colors;
 import nl.thedutchruben.mccore.commands.Command;
@@ -8,7 +8,6 @@ import nl.thedutchruben.mccore.commands.Default;
 import nl.thedutchruben.mccore.commands.SubCommand;
 import nl.thedutchruben.mccore.utils.message.MessageUtil;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 @Command(command = "discordevent",console = true,description = "Manage and see your discord event's",permission = "discordeventsync.command.discordevent")
 public class DiscordEventCommand {
@@ -26,7 +25,7 @@ public class DiscordEventCommand {
 
     @SubCommand(subCommand = "info",params = 1,usage = "<discordevent>",permission = "discordeventsync.command.discordevent.info")
     public void info(CommandSender sender, String[] params){
-        Discordeventsync.getIntance().getDiscordEvents().stream().filter(event -> event.getName().equalsIgnoreCase(params[1].replace("_"," "))).findFirst().ifPresentOrElse(event -> {
+        DiscordEventSync.getInstance().getDiscordEvents().stream().filter(event -> event.getName().equalsIgnoreCase(params[1].replace("_"," "))).findFirst().ifPresentOrElse(event -> {
             event.interestedCount().whenCompleteAsync((integer, throwable) -> {
                 sender.sendMessage(Colors.HIGH_LIGHT.getColor()+event.getName());
                 sender.sendMessage(Colors.TEXT.getColor() +" Location: " +Colors.HIGH_LIGHT.getColor() + event.getLocation());
@@ -42,7 +41,7 @@ public class DiscordEventCommand {
     }
 
 
-    @SubCommand(subCommand = "create", description = "",params = 5, usage = "<name> <date> <starttime> <endtime> <place>",permission = "discordeventsync.command.create")
+    @SubCommand(subCommand = "create", description = "",params = 5, usage = "<name> <date> <starttime> <endtime> <place>",permission = "discordeventsync.command.discordevent.create")
     public void create(CommandSender sender, String[] params){
         String name = params[1];
         String date = params[2];
@@ -66,7 +65,7 @@ public class DiscordEventCommand {
     @SubCommand(subCommand = "list", permission = "discordeventsync.command.discordevent.list")
     public void list(CommandSender sender, String[] params){
         sender.sendMessage(Colors.TEXT.getColor() +"----"+Colors.HIGH_LIGHT.getColor()+"Discord Events"+Colors.TEXT.getColor()+"----");
-        for (Event discordEvent : Discordeventsync.getIntance().getDiscordEvents()) {
+        for (Event discordEvent : DiscordEventSync.getInstance().getDiscordEvents()) {
             MessageUtil.sendClickableCommandHover(sender,Colors.HIGH_LIGHT.getColor()+discordEvent.getName()
                     ,"discordevent info " + discordEvent.getName().replace(" ", "_"),"Click for more information");
             sender.sendMessage(Colors.TEXT.getColor() +" Location: " +Colors.HIGH_LIGHT.getColor() + discordEvent.getLocation());
@@ -77,8 +76,8 @@ public class DiscordEventCommand {
 
     @SubCommand(subCommand = "reload", permission = "discordeventsync.command.discordevent.reload")
     public void reload(CommandSender sender, String[] params){
-        Discordeventsync.getIntance().reloadConfig();
-        Discordeventsync.getIntance().importEvents().whenComplete((unused, throwable) -> {
+        DiscordEventSync.getInstance().reloadConfig();
+        DiscordEventSync.getInstance().importEvents().whenComplete((unused, throwable) -> {
            if(throwable != null){
                sender.sendMessage(Colors.WARNING.getColor()+ "Someting whent wrong");
                throwable.printStackTrace();

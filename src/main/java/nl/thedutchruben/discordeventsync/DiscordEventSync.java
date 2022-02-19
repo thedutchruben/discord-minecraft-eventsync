@@ -29,19 +29,21 @@ import java.util.logging.Level;
 /**
  * This plugin wil sync the event's from discord to minecraft
  */
-public final class Discordeventsync extends JavaPlugin {
-    private static Discordeventsync intance;
+public final class DiscordEventSync extends JavaPlugin {
+    private static DiscordEventSync instance;
     private final FileManager fileManager = new FileManager(this);
     private String guildId = "";
     private String botCode = "";
+    private String discordUrl = "";
+
     /**
      * List with the events but loaded in cache
      */
-    private List<Event> discordEvents = new ArrayList<>();
+    private LinkedList<Event> discordEvents = new LinkedList<>();
     @Override
     public void onEnable() {
         Metrics metrics = new Metrics(this, 14214);
-        intance = this;
+        instance = this;
         new Mccore(this);
         setupConfig();
         importEvents().whenComplete((unused, throwable) -> {
@@ -74,6 +76,7 @@ public final class Discordeventsync extends JavaPlugin {
     public void setupConfig(){
         FileManager.Config discordConfig = fileManager.getConfig("discord.yml");
         FileConfiguration discordConfigConfiguration = discordConfig.get();
+        discordConfigConfiguration.addDefault("discord.url", "https://discord.gg/yourawsomeserver");
         discordConfigConfiguration.addDefault("discord.guildId", "");
         discordConfigConfiguration.addDefault("discord.botCode", "");
         discordConfig.copyDefaults(true).save();
@@ -87,6 +90,7 @@ public final class Discordeventsync extends JavaPlugin {
 
         this.guildId = discordConfigConfiguration.getString("discord.guildId");
         this.botCode = discordConfigConfiguration.getString("discord.botCode");
+        this.discordUrl = discordConfigConfiguration.getString("discord.url");
     }
 
     @Override
@@ -97,7 +101,7 @@ public final class Discordeventsync extends JavaPlugin {
     public CompletableFuture<Void> importEvents(){
 
         return CompletableFuture.supplyAsync(() -> {
-            List<Event> events = new ArrayList<>();
+            LinkedList<Event> events = new LinkedList<>();
             try {
                 URL url = new URL("https://discordapp.com/api/guilds/"+guildId+"/scheduled-events");
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -133,6 +137,7 @@ public final class Discordeventsync extends JavaPlugin {
                     }
                 }else if (con.getResponseCode() == 500) {
                     br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
+                    br.close();
                     throw new DiscordApiErrorException("The discord api gave a 500 error check : https://discordstatus.com/ for issues");
                 } else {
                     br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
@@ -148,8 +153,8 @@ public final class Discordeventsync extends JavaPlugin {
         });
     }
 
-    public static Discordeventsync getIntance() {
-        return intance;
+    public static DiscordEventSync getInstance() {
+        return instance;
     }
 
     public FileManager getFileManager() {
@@ -174,5 +179,9 @@ public final class Discordeventsync extends JavaPlugin {
 
     public String getGuildId() {
         return guildId;
+    }
+
+    public String getDiscordUrl() {
+        return discordUrl;
     }
 }

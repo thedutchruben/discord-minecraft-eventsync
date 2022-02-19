@@ -2,7 +2,7 @@ package nl.thedutchruben.discordeventsync.framework;
 
 import com.google.gson.*;
 import lombok.SneakyThrows;
-import nl.thedutchruben.discordeventsync.Discordeventsync;
+import nl.thedutchruben.discordeventsync.DiscordEventSync;
 import nl.thedutchruben.discordeventsync.exeptions.DiscordApiErrorException;
 import nl.thedutchruben.discordeventsync.utils.Colors;
 import org.bukkit.command.CommandSender;
@@ -13,12 +13,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -33,12 +31,12 @@ public class Event {
     /**
      * Format that the user wand
      */
-    private static DateFormat playerDateFormat = new SimpleDateFormat(Discordeventsync.getIntance().
+    private static DateFormat playerDateFormat = new SimpleDateFormat(DiscordEventSync.getInstance().
             getFileManager().getConfig("config.yml").get().getString("setting.dateformat"));
     private String id;
     private String name;
-    private String description;
-    private String startDate;
+    private String description = "";
+    private String startDate = "";
     private String endDate;
     private String location;
 
@@ -78,7 +76,14 @@ public class Event {
     }
 
     public String formattedDate(){
-        return startDate.replace("T"," ").split("+")[0];
+        SimpleDateFormat discordFormat = new SimpleDateFormat("yyy-MM-dd");
+
+        try {
+            return playerDateFormat.format(discordFormat.parse(startDate.replace("T"," ").split("\\+")[0]));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return startDate.replace("T"," ").split("\\+")[0];
     }
 
     public String getLocation(){
@@ -91,10 +96,10 @@ public class Event {
             if(lastChecked == 0 || lastChecked <= System.currentTimeMillis()){
                 URL url;
                 try {
-                    url = new URL("https://discordapp.com/api/guilds/"+ Discordeventsync.getIntance().getGuildId() +"/scheduled-events/"+id+"/users");
+                    url = new URL("https://discordapp.com/api/guilds/"+ DiscordEventSync.getInstance().getGuildId() +"/scheduled-events/"+id+"/users");
 
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestProperty ("Authorization", "Bot " + Discordeventsync.getIntance().getBotCode());
+                con.setRequestProperty ("Authorization", "Bot " + DiscordEventSync.getInstance().getBotCode());
                 con.setRequestMethod("GET");
                 BufferedReader br = null;
                 if (con.getResponseCode() == 200) {
@@ -104,6 +109,7 @@ public class Event {
                     this.count = jsonArray.size();
                 }else if (con.getResponseCode() == 500) {
                     br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
+                    br.close();
                     throw new DiscordApiErrorException("The discord api gave a 500 error check : https://discordstatus.com/ for issues");
                 } else {
                     br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
@@ -142,7 +148,7 @@ public class Event {
             }
 
         } catch (ParseException e) {
-            commandSender.sendMessage(Colors.WARNING.getColor() + "The date format is not correct. The correct format is "+ Colors.HIGH_LIGHT.getColor() + Discordeventsync.getIntance().
+            commandSender.sendMessage(Colors.WARNING.getColor() + "The date format is not correct. The correct format is "+ Colors.HIGH_LIGHT.getColor() + DiscordEventSync.getInstance().
                     getFileManager().getConfig("config.yml").get().getString("setting.dateformat"));
             return CompletableFuture.completedFuture(false);
         }
@@ -163,7 +169,7 @@ public class Event {
             try {
                 url = new URL("https://discordapp.com/api/guilds/588284432687955978/scheduled-events");
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestProperty ("Authorization", "Bot " + Discordeventsync.getIntance().getBotCode());
+                con.setRequestProperty ("Authorization", "Bot " + DiscordEventSync.getInstance().getBotCode());
                 con.setRequestMethod("POST");
                 con.setRequestProperty("Content-Type", "application/json; utf-8");
                 con.setRequestProperty("Accept", "application/json");

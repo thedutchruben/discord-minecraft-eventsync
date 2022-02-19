@@ -1,6 +1,6 @@
 package nl.thedutchruben.discordeventsync.runnables;
 
-import nl.thedutchruben.discordeventsync.Discordeventsync;
+import nl.thedutchruben.discordeventsync.DiscordEventSync;
 import nl.thedutchruben.discordeventsync.utils.Colors;
 import nl.thedutchruben.mccore.runnables.ASyncRepeatingTask;
 import org.bukkit.Bukkit;
@@ -23,7 +23,7 @@ public class UpdateEventsRunnable implements Runnable {
      */
     @Override
     public void run() {
-        Discordeventsync.getIntance().importEvents().whenComplete((unused, throwable) -> {
+        DiscordEventSync.getInstance().importEvents().whenComplete((unused, throwable) -> {
             if(throwable != null){
                 Bukkit.getLogger().log(Level.WARNING,Colors.WARNING.getColor()+ "Someting whent wrong reloading discord event's");
                 throwable.printStackTrace();
