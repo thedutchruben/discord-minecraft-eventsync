@@ -6,4 +6,8 @@ description: Sync the events of discord to minecraft
 website: www.thedutchruben.nl
 commands:
   discordevent:
+    aliases:
+      - dce
   discord:
+    aliases:
+      - dc

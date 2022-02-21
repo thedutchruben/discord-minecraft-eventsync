@@ -98,7 +98,7 @@ public final class DiscordEventSync extends JavaPlugin {
         // Plugin shutdown logic
     }
 
-    public CompletableFuture<Void> importEvents(){
+    public CompletableFuture<LinkedList<Event>> importEvents(){
 
         return CompletableFuture.supplyAsync(() -> {
             LinkedList<Event> events = new LinkedList<>();
@@ -107,43 +107,41 @@ public final class DiscordEventSync extends JavaPlugin {
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty ("Authorization", "Bot " + botCode);
                 con.setRequestMethod("GET");
-                BufferedReader br = null;
+
                 if (con.getResponseCode() == 200) {
-                    br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    String line = br.readLine();
-                    JsonArray jsonArray = (JsonArray) JsonParser.parseString(line);
-                    System.out.println(line);
-                    for (JsonElement jsonElement : jsonArray) {
-                        Event event = new Event();
-                        JsonObject eventObject = jsonElement.getAsJsonObject();
-                        event.setId(eventObject.get("id").getAsString());
-                        event.setName(eventObject.get("name").getAsString());
+                    try(InputStreamReader reader = new InputStreamReader(con.getInputStream())){
+                        try(BufferedReader br = new BufferedReader(reader)){
+                            JsonArray jsonArray = JsonParser.parseString(br.readLine()).getAsJsonArray();
 
-                        if (!eventObject.get("description").isJsonNull()) {
-                            event.setDescription(eventObject.get("description").getAsString());
-                        }
-                        event.setStartDate(eventObject.get("scheduled_start_time").getAsString());
+                            for (JsonElement jsonElement : jsonArray) {
+                                JsonObject eventObject = jsonElement.getAsJsonObject();
+                                Event event = new Event();
 
-                        if (!eventObject.get("scheduled_end_time").isJsonNull()) {
-                            event.setEndDate(eventObject.get("scheduled_end_time").getAsString());
-                        }
+                                event.setId(eventObject.get("id").getAsString());
+                                event.setName(eventObject.get("name").getAsString());
 
-                        if (!eventObject.get("entity_metadata").isJsonNull()) {
-                            event.setLocation(eventObject.get("entity_metadata").getAsJsonObject().get("location").getAsString());
-                        } else {
-                            event.setLocation("Discord");
+                                if (!eventObject.get("description").isJsonNull()) {
+                                    event.setDescription(eventObject.get("description").getAsString());
+                                }
+                                event.setStartDate(eventObject.get("scheduled_start_time").getAsString());
+
+                                if (!eventObject.get("scheduled_end_time").isJsonNull()) {
+                                    event.setEndDate(eventObject.get("scheduled_end_time").getAsString());
+                                }
+
+                                if (!eventObject.get("entity_metadata").isJsonNull()) {
+                                    event.setLocation(eventObject.get("entity_metadata").getAsJsonObject().get("location").getAsString());
+                                } else {
+                                    event.setLocation("Discord");
+                                }
+                                events.add(event);
+                            }
+                            return events;
                         }
-                        events.add(event);
                     }
                 }else if (con.getResponseCode() == 500) {
-                    br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
-                    br.close();
                     throw new DiscordApiErrorException("The discord api gave a 500 error check : https://discordstatus.com/ for issues");
-                } else {
-                    br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
                 }
-
-                br.close();
             } catch (IOException | ClassCastException | DiscordApiErrorException e) {
                 e.printStackTrace();
             }

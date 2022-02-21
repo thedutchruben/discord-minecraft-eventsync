@@ -1,6 +1,7 @@
 package nl.thedutchruben.discordeventsync.runnables;
 
 import nl.thedutchruben.discordeventsync.DiscordEventSync;
+import nl.thedutchruben.discordeventsync.events.DiscordEventsUpdateEvent;
 import nl.thedutchruben.discordeventsync.utils.Colors;
 import nl.thedutchruben.mccore.runnables.ASyncRepeatingTask;
 import org.bukkit.Bukkit;
@@ -27,7 +28,9 @@ public class UpdateEventsRunnable implements Runnable {
             if(throwable != null){
                 Bukkit.getLogger().log(Level.WARNING,Colors.WARNING.getColor()+ "Someting whent wrong reloading discord event's");
                 throwable.printStackTrace();
+                return;
             }
+            Bukkit.getPluginManager().callEvent(new DiscordEventsUpdateEvent(unused));
         });
     }
 }

@@ -3,8 +3,10 @@ package nl.thedutchruben.discordeventsync.framework;
 import com.google.gson.*;
 import lombok.SneakyThrows;
 import nl.thedutchruben.discordeventsync.DiscordEventSync;
+import nl.thedutchruben.discordeventsync.events.DiscordEventCreateEvent;
 import nl.thedutchruben.discordeventsync.exeptions.DiscordApiErrorException;
 import nl.thedutchruben.discordeventsync.utils.Colors;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import javax.annotation.Nullable;
@@ -184,7 +186,6 @@ public class Event {
                         "   \"entity_type\":\"3\",\n" +
                         "   \"privacy_level\":\"2\"\n" +
                         "}";
-                System.out.println(jsonInputString);
                 try(OutputStream os = con.getOutputStream()) {
                     byte[] input = jsonInputString.getBytes("utf-8");
                     os.write(input, 0, input.length);
@@ -226,7 +227,13 @@ public class Event {
                     }
                 return false;
             }
-
+            Event event = new Event();
+            event.setId(name);
+            event.setDescription("");
+            event.setStartDate(discordFormat.format(userDate)+"T"+startTime+getCurrentTimezoneOffset());
+            event.setEndDate(discordFormat.format(userDate)+"T"+endTime+getCurrentTimezoneOffset());
+            event.setLocation(place);
+            Bukkit.getPluginManager().callEvent(new DiscordEventCreateEvent(event));
             return true;
         });
     }
