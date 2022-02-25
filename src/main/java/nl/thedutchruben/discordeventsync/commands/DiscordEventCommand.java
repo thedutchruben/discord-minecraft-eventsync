@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-@Command(command = "discordevent",console = true,description = "Manage and see your discord event's",permission = "discordeventsync.command.discordevent")
+@Command(command = "discordevent",console = true ,description = "Manage and see your discord event's" ,permission = "discordeventsync.command.discordevent")
 public class DiscordEventCommand {
 
     @Default
@@ -29,7 +29,7 @@ public class DiscordEventCommand {
         sender.sendMessage(Colors.TEXT.getColor()+"/discordevent reload");
     }
 
-    @SubCommand(subCommand = "info",params = 1,usage = "<discordevent>",permission = "discordeventsync.command.discordevent.info")
+    @SubCommand(subCommand = "info",minParams = 1,usage = "<discordevent>",permission = "discordeventsync.command.discordevent.info")
     public void info(CommandSender sender, List<String> params){
         DiscordEventSync.getInstance().getDiscordEvents().stream().filter(event -> event.getName().equalsIgnoreCase(params.get(1).replace("_"," "))).findFirst().ifPresentOrElse(event -> {
             event.interestedCount().whenCompleteAsync((integer, throwable) -> {
@@ -47,7 +47,7 @@ public class DiscordEventCommand {
     }
 
 
-    @SubCommand(subCommand = "create", description = "",params = 5, usage = "<name> <date> <starttime> <endtime> <place>",permission = "discordeventsync.command.discordevent.create")
+    @SubCommand(subCommand = "create", description = "",minParams = 5, usage = "<name> <date> <starttime> <endtime> <place>",permission = "discordeventsync.command.discordevent.create")
     public void create(CommandSender sender, List<String> params){
         String name = params.get(1);
         String date = params.get(2);
@@ -93,7 +93,7 @@ public class DiscordEventCommand {
         });
     }
 
-    @SubCommand(params = 1, console = false ,subCommand = "sethologram", permission = "discordeventsync.command.discordevent.sethologram")
+    @SubCommand(minParams = 1, console = false ,subCommand = "sethologram", permission = "discordeventsync.command.discordevent.sethologram")
     public void setHologram(CommandSender commandSender, List<String> params){
         Player player = (Player) commandSender;
         String type = params.get(1);
