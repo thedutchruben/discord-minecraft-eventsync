@@ -23,10 +23,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class Event {
@@ -77,9 +74,17 @@ public class Event {
         return name;
     }
 
+    @SneakyThrows
+    public Date fromToTimeZone(String date) {
+        SimpleDateFormat isoFormat = new SimpleDateFormat("HH:mm:ss");
+        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        isoFormat.setTimeZone(TimeZone.getTimeZone("Europe/Amsterdam"));
+        return isoFormat.parse(date);
+    }
     public String formattedDate(){
         SimpleDateFormat discordFormat = new SimpleDateFormat("yyy-MM-dd");
-
+        System.out.println(Arrays.toString(startDate.replace("T", " ").split("\\+")));
+        System.out.println(fromToTimeZone(startDate.replace("T", " ").split("\\+")[0].split(" ")[1]));
         try {
             return playerDateFormat.format(discordFormat.parse(startDate.replace("T"," ").split("\\+")[0]));
         } catch (ParseException e) {

@@ -9,13 +9,13 @@ import java.util.Optional;
 @ASyncRepeatingTask(startTime = 10,repeatTime = 20*60)
 public class RoundEventsRunnable implements Runnable{
     private static int current = 0;
-    private static Optional<Event> currentEvent = Optional.empty();
+    private static Optional<Event> comingUp = Optional.empty();
 
 
     @Override
     public void run() {
         if(DiscordEventSync.getInstance().getDiscordEvents().isEmpty()){
-            currentEvent = Optional.empty();
+            comingUp = Optional.empty();
             return;
         }
 
@@ -25,14 +25,14 @@ public class RoundEventsRunnable implements Runnable{
             current++;
         }
 
-        currentEvent = Optional.of(DiscordEventSync.getInstance().getDiscordEvents().get(current));
+        comingUp = Optional.of(DiscordEventSync.getInstance().getDiscordEvents().get(current));
     }
 
     public static int getCurrent() {
         return current;
     }
 
-    public static Optional<Event> getCurrentEvent() {
-        return currentEvent;
+    public static Optional<Event> getComingUp() {
+        return comingUp;
     }
 }

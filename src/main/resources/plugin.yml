@@ -1,4 +1,4 @@
-name: Discordeventsync
+name: DiscordEventSync
 version: '${project.version}'
 main: nl.thedutchruben.discordeventsync.DiscordEventSync
 authors: [ TheDuchRuben, wouter_MC ]

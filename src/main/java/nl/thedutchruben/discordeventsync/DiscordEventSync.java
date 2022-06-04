@@ -7,9 +7,11 @@ import com.google.gson.JsonParser;
 import nl.thedutchruben.discordeventsync.exeptions.DiscordApiErrorException;
 import nl.thedutchruben.discordeventsync.extentions.PlaceholderAPIExpansion;
 import nl.thedutchruben.discordeventsync.framework.Event;
+import nl.thedutchruben.discordeventsync.holograms.EventHologram;
 import nl.thedutchruben.discordeventsync.utils.Colors;
 import nl.thedutchruben.mccore.Mccore;
 import nl.thedutchruben.mccore.commands.CommandRegistry;
+import nl.thedutchruben.mccore.config.UpdateCheckerConfig;
 import nl.thedutchruben.mccore.utils.config.FileManager;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
@@ -32,6 +34,7 @@ import java.util.logging.Level;
 public final class DiscordEventSync extends JavaPlugin {
     private static DiscordEventSync instance;
     private final FileManager fileManager = new FileManager(this);
+    private Map<String, EventHologram> eventHologramMap = new HashMap<>();
     private String guildId = "";
     private String botCode = "";
     private String discordUrl = "";
@@ -44,7 +47,7 @@ public final class DiscordEventSync extends JavaPlugin {
     public void onEnable() {
         Metrics metrics = new Metrics(this, 14214);
         instance = this;
-        new Mccore(this);
+        Mccore mccore = new Mccore(this,"discordeventsync");
         setupConfig();
         importEvents().whenComplete((unused, throwable) -> {
             if(throwable != null){
@@ -64,6 +67,16 @@ public final class DiscordEventSync extends JavaPlugin {
             return events;
         });
 
+        CommandRegistry.getTabCompletable().put("eventhologram", commandSender -> eventHologramMap.keySet());
+        CommandRegistry.getTabCompletable().put("eventType", commandSender -> {
+            Set<String> options = new HashSet<>();
+            for (EventHologram.Type value : EventHologram.Type.values()) {
+                options.add(value.name());
+            }
+
+            return options;
+        });
+
         metrics.addCustomChart(new SimplePie("has_events",() -> String.valueOf(!discordEvents.isEmpty())));
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -71,8 +84,14 @@ public final class DiscordEventSync extends JavaPlugin {
             metrics.addCustomChart(new SimplePie("addons_use", () -> "PlaceholderAPI"));
             new PlaceholderAPIExpansion().register();
         }
-    }
 
+        FileManager.Config config  = fileManager.getConfig("config.yml");
+        FileConfiguration configfileConfiguration = config.get();
+        if (configfileConfiguration.getBoolean("setting.updatecheck.enabled",true)) {
+            mccore.startUpdateChecker(new UpdateCheckerConfig(configfileConfiguration.getString("setting.updatecheck.permission"),configfileConfiguration.getInt("setting.updatecheck.updatetime")));
+        }
+
+    }
     public void setupConfig(){
         FileManager.Config discordConfig = fileManager.getConfig("discord.yml");
         FileConfiguration discordConfigConfiguration = discordConfig.get();
@@ -83,8 +102,14 @@ public final class DiscordEventSync extends JavaPlugin {
 
         FileManager.Config config  = fileManager.getConfig("config.yml");
         FileConfiguration configfileConfiguration = config.get();
-        configfileConfiguration.addDefault("setting.updatecheck",true);
+        configfileConfiguration.addDefault("setting.updatecheck.enabled",true);
+        configfileConfiguration.addDefault("setting.updatecheck.permission","discordeventsync.update");
+        configfileConfiguration.addDefault("setting.updatecheck.updatetime",20*60*5);
+
         configfileConfiguration.addDefault("setting.dateformat","dd-MM-yyyy");
+        configfileConfiguration.addDefault("setting.hologram.nextHologram",Arrays.asList("&7Next event:","&7&l{EVENT_NAME}","&7&l{EVENT_DATE}","{EVENT_DESCRIPTION}","Location: {EVENT_LOCATION}"));
+        configfileConfiguration.addDefault("setting.hologram.comingUp",Arrays.asList("&7ComingUp:","&7&l{EVENT_NAME}","&7&l{EVENT_DATE}","{EVENT_DESCRIPTION}","Location: {EVENT_LOCATION}"));
+
         config.copyDefaults(true).save();
 
 
@@ -96,6 +121,8 @@ public final class DiscordEventSync extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        this.eventHologramMap.clear();
+        this.discordEvents.clear();
     }
 
     public CompletableFuture<LinkedList<Event>> importEvents(){
@@ -107,7 +134,6 @@ public final class DiscordEventSync extends JavaPlugin {
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty ("Authorization", "Bot " + botCode);
                 con.setRequestMethod("GET");
-
                 if (con.getResponseCode() == 200) {
                     try(InputStreamReader reader = new InputStreamReader(con.getInputStream())){
                         try(BufferedReader br = new BufferedReader(reader)){
@@ -136,6 +162,8 @@ public final class DiscordEventSync extends JavaPlugin {
                                 }
                                 events.add(event);
                             }
+                            this.discordEvents = events;
+
                             return events;
                         }
                     }
@@ -181,5 +209,9 @@ public final class DiscordEventSync extends JavaPlugin {
 
     public String getDiscordUrl() {
         return discordUrl;
+    }
+
+    public Map<String, EventHologram> getEventHologramMap() {
+        return eventHologramMap;
     }
 }

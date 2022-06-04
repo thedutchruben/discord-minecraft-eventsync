@@ -3,6 +3,7 @@ package nl.thedutchruben.discordeventsync.commands;
 import nl.thedutchruben.discordeventsync.DiscordEventSync;
 import nl.thedutchruben.discordeventsync.events.DiscordEventCreateEvent;
 import nl.thedutchruben.discordeventsync.framework.Event;
+import nl.thedutchruben.discordeventsync.holograms.EventHologram;
 import nl.thedutchruben.discordeventsync.utils.Colors;
 import nl.thedutchruben.mccore.commands.Command;
 import nl.thedutchruben.mccore.commands.Default;
@@ -29,7 +30,7 @@ public class DiscordEventCommand {
         sender.sendMessage(Colors.TEXT.getColor()+"/discordevent reload");
     }
 
-    @SubCommand(subCommand = "info",minParams = 1,maxParams = 1,usage = "<discordevent>",permission = "discordeventsync.command.discordevent.info")
+    @SubCommand(subCommand = "info",minParams = 2,maxParams = 2,usage = "<discordevent>",permission = "discordeventsync.command.discordevent.info")
     public void info(CommandSender sender, List<String> params){
         DiscordEventSync.getInstance().getDiscordEvents().stream().filter(event -> event.getName().equalsIgnoreCase(params.get(1).replace("_"," "))).findFirst().ifPresentOrElse(event -> {
             event.interestedCount().whenCompleteAsync((integer, throwable) -> {
@@ -47,7 +48,7 @@ public class DiscordEventCommand {
     }
 
 
-    @SubCommand(subCommand = "create", description = "",minParams = 5,maxParams = 5, usage = "<name> <date> <starttime> <endtime> <place>",permission = "discordeventsync.command.discordevent.create")
+    @SubCommand(subCommand = "create", description = "",minParams = 6,maxParams = 6, usage = "<name> <date> <starttime> <endtime> <place>",permission = "discordeventsync.command.discordevent.create")
     public void create(CommandSender sender, List<String> params){
         String name = params.get(1);
         String date = params.get(2);
@@ -93,11 +94,13 @@ public class DiscordEventCommand {
         });
     }
 
-    @SubCommand(minParams = 1, maxParams = 1,console = false ,subCommand = "sethologram", permission = "discordeventsync.command.discordevent.sethologram")
+    @SubCommand(minParams = 3, maxParams = 3,console = false ,subCommand = "sethologram",usage = "<name> <eventType>", permission = "discordeventsync.command.discordevent.sethologram")
     public void setHologram(CommandSender commandSender, List<String> params){
         Player player = (Player) commandSender;
-        String type = params.get(1);
-        Hologram hologram = new Hologram();
-        hologram.setLocation(player.getLocation());
+        String name = params.get(1);
+        String type = params.get(2);
+        EventHologram eventHologram = new EventHologram(player.getLocation(), EventHologram.Type.valueOf(type),name);
+        eventHologram.spawnHologram();
+        eventHologram.save();
     }
 }

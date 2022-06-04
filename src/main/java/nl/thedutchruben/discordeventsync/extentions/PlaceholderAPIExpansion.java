@@ -81,7 +81,7 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion{
 
         //%discordeventsync_cycle_event_current%
         if(params.equals("cycle_event_current")){
-            if(RoundEventsRunnable.getCurrentEvent() == null){
+            if(RoundEventsRunnable.getComingUp() == null){
                 return "0";
             }else{
                 return String.valueOf(RoundEventsRunnable.getCurrent());
@@ -90,37 +90,38 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion{
 
         //%discordeventsync_cycle_event_name%
         if(params.equals("cycle_event_name")){
-            if(RoundEventsRunnable.getCurrentEvent() == null){
+            if(RoundEventsRunnable.getComingUp() == null){
                 return "No event found";
             }else{
-                return RoundEventsRunnable.getCurrentEvent().get().getName();
+                return RoundEventsRunnable.getComingUp().get().getName();
             }
         }
 
         //%discordeventsync_cycle_event_description%
         if(params.equals("cycle_event_description")){
-            if(RoundEventsRunnable.getCurrentEvent() == null){
+            if(RoundEventsRunnable.getComingUp() == null){
                 return "No event found";
             }else{
-                return RoundEventsRunnable.getCurrentEvent().get().getDescription();
+                return RoundEventsRunnable.getComingUp().get().getDescription();
             }
         }
 
         //%discordeventsync_cycle_event_date%
         if(params.equals("cycle_event_date")){
-            if(RoundEventsRunnable.getCurrentEvent() == null){
+            if(RoundEventsRunnable.getComingUp() == null){
                 return "No event found";
             }else{
-                return RoundEventsRunnable.getCurrentEvent().get().formattedDate();
+                return RoundEventsRunnable.getComingUp().get().formattedDate();
             }
         }
 
+
         //%discordeventsync_cycle_event_count%
         if(params.equals("cycle_event_count")){
-            if(RoundEventsRunnable.getCurrentEvent().get() == null){
+            if(RoundEventsRunnable.getComingUp().get() == null){
                 return "No event found";
             }else{
-                return String.valueOf(RoundEventsRunnable.getCurrentEvent().get().interestedCount().get());
+                return String.valueOf(RoundEventsRunnable.getComingUp().get().interestedCount().get());
             }
         }
 

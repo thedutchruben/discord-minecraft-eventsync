@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class DiscordEventsUpdateEvent extends DiscordEventSyncEvent{
-    private LinkedList<Event> events = new LinkedList<>();
+    private LinkedList<Event> events;
 
 
     public DiscordEventsUpdateEvent(LinkedList<Event> events) {
