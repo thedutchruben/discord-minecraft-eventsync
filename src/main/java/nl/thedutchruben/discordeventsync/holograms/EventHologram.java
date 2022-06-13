@@ -8,7 +8,9 @@ import nl.thedutchruben.mccore.utils.hologram.Hologram;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,8 +29,15 @@ public class EventHologram {
         this.name = name;
     }
 
-    public static EventHologram load(FileManager.Config config){
-        return new EventHologram((Location) config.get().get("location",Location.class),Type.valueOf(config.get().getString("type")),config.get().getString("name"));
+    public static EventHologram load(YamlConfiguration config){
+        return new EventHologram((Location) config.get("location",Location.class),Type.valueOf(config.getString("type")),config.getString("name"));
+    }
+
+    public void remove(){
+        holograms.forEach(Hologram::removeHologram);
+        FileManager.Config config =  DiscordEventSync.getInstance().getFileManager().getConfig("/hologram/" + name + ".yml");
+        File f= new File(config.get().getCurrentPath());
+        f.delete();
     }
 
     public void save(){
@@ -61,6 +70,8 @@ public class EventHologram {
                         }else{
                             text.add(ChatColor.translateAlternateColorCodes('&',line).replace("{EVENT_NAME}",nextEvent.getName())
                                     .replace("{EVENT_LOCATION}", nextEvent.getLocation())
+                                    .replace("{EVENT_START_TIME}", nextEvent.getStartTime())
+                                    .replace("{EVENT_END_TIME}", nextEvent.getEndTime())
                                     .replace("{EVENT_DATE}", nextEvent.formattedDate()));
                         }
                     });
@@ -82,6 +93,8 @@ public class EventHologram {
                         }else{
                             text.add(ChatColor.translateAlternateColorCodes('&',line).replace("{EVENT_NAME}",event.getName())
                                     .replace("{EVENT_LOCATION}", event.getLocation())
+                                    .replace("{EVENT_START_TIME}", event.getStartTime())
+                                    .replace("{EVENT_END_TIME}", event.getEndTime())
                                     .replace("{EVENT_DATE}", event.formattedDate()));
                         }
                     });

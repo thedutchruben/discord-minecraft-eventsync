@@ -8,27 +8,31 @@ import nl.thedutchruben.discordeventsync.exeptions.DiscordApiErrorException;
 import nl.thedutchruben.discordeventsync.utils.Colors;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import javax.swing.text.DateFormatter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Time;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public class Event {
+public class Event implements Comparable<Event>{
     /**
-     * Format that the user wand
+     * Format that the user want
      */
     private static DateFormat playerDateFormat = new SimpleDateFormat(DiscordEventSync.getInstance().
             getFileManager().getConfig("config.yml").get().getString("setting.dateformat"));
@@ -75,26 +79,37 @@ public class Event {
     }
 
     @SneakyThrows
-    public Date fromToTimeZone(String date) {
-        SimpleDateFormat isoFormat = new SimpleDateFormat("HH:mm:ss");
-        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        isoFormat.setTimeZone(TimeZone.getTimeZone("Europe/Amsterdam"));
-        return isoFormat.parse(date);
+    public String getStartTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss Z");
+        sdf.setTimeZone(TimeZone.getTimeZone("Europe/London"));
+        Date time = sdf.parse((startDate.replace("T"," ").split(" ")[1].split("\\+")[0]) + " UTC");
+        return time.toInstant().atOffset(ZoneOffset.of(getCurrentTimezoneOffset())).toLocalDateTime().toLocalTime().toString();
+    }
+
+    @SneakyThrows
+    public String getEndTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss Z");
+        sdf.setTimeZone(TimeZone.getTimeZone("Europe/London"));
+        Date time = sdf.parse((endDate.replace("T"," ").split(" ")[1].split("\\+")[0]) + " UTC");
+        return time.toInstant().atOffset(ZoneOffset.of(getCurrentTimezoneOffset())).toLocalDateTime().toLocalTime().toString();
     }
     public String formattedDate(){
         SimpleDateFormat discordFormat = new SimpleDateFormat("yyy-MM-dd");
-        System.out.println(Arrays.toString(startDate.replace("T", " ").split("\\+")));
-        System.out.println(fromToTimeZone(startDate.replace("T", " ").split("\\+")[0].split(" ")[1]));
+
         try {
             return playerDateFormat.format(discordFormat.parse(startDate.replace("T"," ").split("\\+")[0]));
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        return startDate.replace("T"," ").split("\\+")[0];
+        return (startDate.replace("T"," ").split("\\+")[0]);
     }
 
     public String getLocation(){
         return location;
+    }
+
+    public String getStartDate() {
+        return startDate;
     }
 
     @SneakyThrows
@@ -247,11 +262,21 @@ public class Event {
 
         TimeZone tz = TimeZone.getDefault();
         Calendar cal = GregorianCalendar.getInstance(tz);
+
         int offsetInMillis = tz.getOffset(cal.getTimeInMillis());
 
         String offset = String.format("%02d:%02d", Math.abs(offsetInMillis / 3600000), Math.abs((offsetInMillis / 60000) % 60));
         offset = (offsetInMillis >= 0 ? "+" : "-") + offset;
 
         return offset;
+    }
+
+    @SneakyThrows
+    @Override
+    public int compareTo(@NotNull Event o) {
+        SimpleDateFormat discordFormat = new SimpleDateFormat("yyy-MM-dd");
+
+        return  discordFormat.parse(startDate.replace("T"," ").split("\\+")[0]).
+                compareTo(discordFormat.parse(o.getStartDate().replace("T"," ").split("\\+")[0]));
     }
 }

@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import nl.thedutchruben.discordeventsync.events.DiscordEventsUpdateEvent;
 import nl.thedutchruben.discordeventsync.exeptions.DiscordApiErrorException;
 import nl.thedutchruben.discordeventsync.extentions.PlaceholderAPIExpansion;
 import nl.thedutchruben.discordeventsync.framework.Event;
@@ -13,13 +14,16 @@ import nl.thedutchruben.mccore.Mccore;
 import nl.thedutchruben.mccore.commands.CommandRegistry;
 import nl.thedutchruben.mccore.config.UpdateCheckerConfig;
 import nl.thedutchruben.mccore.utils.config.FileManager;
+import nl.thedutchruben.mccore.utils.hologram.Hologram;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -47,15 +51,16 @@ public final class DiscordEventSync extends JavaPlugin {
     public void onEnable() {
         Metrics metrics = new Metrics(this, 14214);
         instance = this;
-        Mccore mccore = new Mccore(this,"discordeventsync");
+        Mccore mccore = new Mccore(this,"discordeventsync","62489023a9d73be8f49d1b54");
         setupConfig();
         importEvents().whenComplete((unused, throwable) -> {
             if(throwable != null){
-                Bukkit.getLogger().log(Level.WARNING,Colors.WARNING.getColor() +"Event's not loaded");
+                Bukkit.getLogger().log(Level.WARNING,"Event's not loaded");
                 throwable.printStackTrace();
                 return;
             }
-            Bukkit.getLogger().log(Level.INFO, Colors.SUCCESS.getColor() + "Event's loaded");
+            Bukkit.getLogger().log(Level.INFO, "Event's loaded");
+            Bukkit.getScheduler().runTask(DiscordEventSync.getInstance(),() -> Bukkit.getPluginManager().callEvent(new DiscordEventsUpdateEvent(unused)));
 
         });
 
@@ -80,7 +85,7 @@ public final class DiscordEventSync extends JavaPlugin {
         metrics.addCustomChart(new SimplePie("has_events",() -> String.valueOf(!discordEvents.isEmpty())));
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            getLogger().log(Level.INFO, Colors.HIGH_LIGHT.getColor() +"PlaceholderAPI expansion implemented");
+            getLogger().log(Level.INFO, "PlaceholderAPI expansion implemented");
             metrics.addCustomChart(new SimplePie("addons_use", () -> "PlaceholderAPI"));
             new PlaceholderAPIExpansion().register();
         }
@@ -88,9 +93,22 @@ public final class DiscordEventSync extends JavaPlugin {
         FileManager.Config config  = fileManager.getConfig("config.yml");
         FileConfiguration configfileConfiguration = config.get();
         if (configfileConfiguration.getBoolean("setting.updatecheck.enabled",true)) {
-            mccore.startUpdateChecker(new UpdateCheckerConfig(configfileConfiguration.getString("setting.updatecheck.permission"),configfileConfiguration.getInt("setting.updatecheck.updatetime")));
+            mccore.startUpdateChecker(new UpdateCheckerConfig("discordeventsync.updatechecker",configfileConfiguration.getInt("setting.updatecheck.updatetime")));
         }
+        loadHolograms();
 
+
+    }
+
+    public void loadHolograms(){
+        for (final File fileEntry : Objects.requireNonNull(new File(getDataFolder(), "hologram/").listFiles())) {
+            FileManager.Config config =  DiscordEventSync.getInstance().getFileManager().getConfig("/hologram/" + fileEntry.getName());
+            if (config != null) {
+                    EventHologram eventHologram = EventHologram.load(config.get());
+                    this.eventHologramMap.put(eventHologram.getName(),eventHologram);
+                    eventHologram.spawnHologram();
+            }
+        }
     }
     public void setupConfig(){
         FileManager.Config discordConfig = fileManager.getConfig("discord.yml");
@@ -107,8 +125,8 @@ public final class DiscordEventSync extends JavaPlugin {
         configfileConfiguration.addDefault("setting.updatecheck.updatetime",20*60*5);
 
         configfileConfiguration.addDefault("setting.dateformat","dd-MM-yyyy");
-        configfileConfiguration.addDefault("setting.hologram.nextHologram",Arrays.asList("&7Next event:","&7&l{EVENT_NAME}","&7&l{EVENT_DATE}","{EVENT_DESCRIPTION}","Location: {EVENT_LOCATION}"));
-        configfileConfiguration.addDefault("setting.hologram.comingUp",Arrays.asList("&7ComingUp:","&7&l{EVENT_NAME}","&7&l{EVENT_DATE}","{EVENT_DESCRIPTION}","Location: {EVENT_LOCATION}"));
+        configfileConfiguration.addDefault("setting.hologram.nextHologram",Arrays.asList("&7Next event:","&7&l{EVENT_NAME}","&7&l{EVENT_START_TIME} {EVENT_DATE}","{EVENT_DESCRIPTION}","Location: {EVENT_LOCATION}"));
+        configfileConfiguration.addDefault("setting.hologram.comingUp",Arrays.asList("&7ComingUp:","&7&l{EVENT_NAME}","&7&l{EVENT_START_TIME} {EVENT_DATE}","{EVENT_DESCRIPTION}","Location: {EVENT_LOCATION}"));
 
         config.copyDefaults(true).save();
 
@@ -121,6 +139,11 @@ public final class DiscordEventSync extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        for (EventHologram value : eventHologramMap.values()) {
+            for (Hologram hologram : value.getHolograms()) {
+                hologram.removeHologram();
+            }
+        }
         this.eventHologramMap.clear();
         this.discordEvents.clear();
     }
@@ -162,6 +185,7 @@ public final class DiscordEventSync extends JavaPlugin {
                                 }
                                 events.add(event);
                             }
+                            Collections.sort(events);
                             this.discordEvents = events;
 
                             return events;
@@ -175,6 +199,7 @@ public final class DiscordEventSync extends JavaPlugin {
             }
 
             this.discordEvents = events;
+            Bukkit.getScheduler().runTask(this,() -> Bukkit.getPluginManager().callEvent(new DiscordEventsUpdateEvent(events)));
             return null;
         });
     }
